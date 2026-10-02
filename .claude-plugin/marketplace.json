@@ -1,0 +1,15 @@
+{
+  "name": "cloudishai",
+  "description": "Agent Skills for Cloudish, the cloud an AI agent deploys a container to.",
+  "owner": {
+    "name": "Hal9 Inc",
+    "url": "https://cloudish.ai"
+  },
+  "plugins": [
+    {
+      "name": "cloudish",
+      "source": "./",
+      "description": "Deploy a Dockerfile, source folder, or container image to Cloudish and get a live URL."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "cloudish",
+  "version": "0.1.3",
+  "description": "Deploy a Dockerfile, source folder, or container image to Cloudish and get a live URL.",
+  "author": {
+    "name": "Hal9 Inc",
+    "url": "https://cloudish.ai"
+  },
+  "homepage": "https://cloudish.ai",
+  "repository": "https://github.com/cloudishai/skills",
+  "license": "MIT",
+  "keywords": ["cloudish", "deployment", "docker", "containers", "hosting", "agents"]
+}
