@@ -1,6 +1,6 @@
 ---
 name: cloudish
-description: Deploy a Dockerfile, source folder, or container image to Cloudish and get a live URL. Use when the user asks to deploy an app, website, API, or container to Cloudish, or to get a Cloudish API key.
+description: Deploy and run apps on Cloudish, the cloud an AI agent deploys to. Builds a Dockerfile, source folder, or container image server-side and serves it at a live URL, with persistent volumes for databases and files, encrypted secrets, and sign-in for your app's users through Cloudish's OIDC provider. The agent mints its own API key with no signup, and a human can claim it later. Use when the user asks to deploy, host, or put online an app, website, API, bot, or database-backed service on Cloudish, or to get a Cloudish API key.
 ---
 
 # Deploy to Cloudish

@@ -9,7 +9,7 @@
     {
       "name": "cloudish",
       "source": "./",
-      "description": "Deploy a Dockerfile, source folder, or container image to Cloudish and get a live URL."
+      "description": "Deploy apps to Cloudish at a live URL: server-side builds, persistent storage for databases and files, user sign-in via OIDC, and API keys agents mint themselves and humans claim later."
     }
   ]
 }
