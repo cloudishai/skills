@@ -11,12 +11,18 @@ Keep your API key in the project folder's gitignored `.env` — reuse it if
 it's already there instead of minting a new one:
 
 ```bash
-grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null || {
-  RESPONSE=$(curl -s -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-    -d "{\"alias\": \"$(basename "$PWD")\"}")
-  printf 'CLOUDISH_API_KEY=%s\nCLOUDISH_ALIAS=%s\n' \
-    "$(echo "$RESPONSE" | jq -r .key)" "$(echo "$RESPONSE" | jq -r .apiKey.alias)" >> .env
-}
+grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null && echo "reuse the key in .env"
+```
+
+Only if it isn't there, mint one with the project folder's name as its
+alias, and write it straight into `.env` so the key never shows up in your
+output:
+
+```bash
+curl -s -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
+  -d '{"alias": "<project-folder-name>"}' > .env.new-key.json
+jq -r '"CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
+rm .env.new-key.json
 grep -qxF .env .gitignore 2>/dev/null || echo .env >> .gitignore
 ```
 
