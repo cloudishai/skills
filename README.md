@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/cloudish.png" alt="Cloudish" width="160">
-</p>
+![Cloudish](assets/cloudish.png)
 
 <h1 align="center">Cloudish Skills</h1>
 
@@ -68,13 +66,8 @@ Your deployed code and data are handled under Cloudish's
 ```
 
 **Any agent that reads `SKILL.md`** (Claude Code, Codex, Cursor, …) — copy
-[`skills/cloudish`](skills/cloudish) into your agent's skills directory, or
-install the full skill straight from Cloudish:
-
-```bash
-mkdir -p ~/.claude/skills/cloudish
-curl -s https://cloudish.ai/skill.md -o ~/.claude/skills/cloudish/SKILL.md
-```
+the [`skills/cloudish`](skills/cloudish) folder into your agent's skills
+directory.
 
 Then ask your agent: *"Deploy this app to Cloudish."*
 
@@ -85,7 +78,7 @@ skills/cloudish/SKILL.md          the skill (copy of cloudish.ai/skill.md)
 skills/cloudish/*.md              the docs it links to, bundled
 .claude-plugin/                   Claude Code plugin + marketplace manifests
 plugin.json                       OpenAI / Agent Plugins manifest
-assets/cloudish.png               icon
+assets/                           icon
 ```
 
 ## License
