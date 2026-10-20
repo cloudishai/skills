@@ -21,7 +21,8 @@ stop rather than improvise.
 
 1. Inspect the project: entrypoint, port, Dockerfile, env vars, data that must persist.
 2. Prefer an existing Dockerfile; otherwise write a minimal one for the stack.
-3. Make sure the server binds to `0.0.0.0` on its declared port.
+3. Make sure the server binds to `0.0.0.0`, and send the port it actually
+   listens on as `port` (8080 unless set; an nginx image listens on 80).
 4. Reuse `CLOUDISH_API_KEY` from `.env` if present; if you mint one, save it to a
    gitignored `.env` before anything else.
 5. Never print keys or secrets into chat, source, or logs.
@@ -30,3 +31,41 @@ stop rather than improvise.
    that matters about persistence, env vars, or networking.
 8. If a deploy fails, read the build/runtime logs and fix the cause; never claim
    success without seeing it.
+
+## The core calls
+
+These are the calls the workflow makes; https://cloudish.ai/skill.md has every
+field and the rest of the API (secrets, volumes, domains, sizes).
+
+```bash
+# 1. A key of its own: no credential needed. Save "key" to .env right away.
+curl -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" -d '{}'
+
+# 2. Create or update the project and build from source, server-side.
+#    The tar.gz needs a Dockerfile at its root; keep secrets out of it.
+tar --exclude='.env*' --exclude='.git' -czf context.tar.gz .
+curl -X POST https://cloudish.ai/api/v1/projects -H "Authorization: Bearer $CLOUDISH_API_KEY" \
+  -F "name=my-app" -F "port=8080" -F "context=@context.tar.gz"
+
+# 3. Poll the build until "succeeded" or "failed" (show build.error and the log tail).
+curl https://cloudish.ai/api/v1/images/builds/<build-id> -H "Authorization: Bearer $CLOUDISH_API_KEY"
+
+# 4. The live URL is the project's subdomain.url.
+curl https://cloudish.ai/api/v1/projects/<alias>/my-app -H "Authorization: Bearer $CLOUDISH_API_KEY"
+```
+
+To let a human add credits or see a dashboard, mint a claim link with
+`GET /api/v1/credits/claim` and give them the URL it returns (it works once
+and expires in 30 minutes). Never hand over the key itself.
+
+## Good to know
+
+- For a memorable URL, set the subdomain label right after the create call,
+  before the build finishes. The app then gets that one hostname instead of a
+  random one first.
+- Give a sub-agent or runtime its own child key (minted with yours, funded by
+  transfer, capped with a receive limit) rather than sharing your key; see
+  https://cloudish.ai/credits.md.
+- If an API connection drops, retry idempotent calls (GET, PUT, DELETE), but
+  don't blindly resend a POST that may have landed: you'd get a second key,
+  transfer or build.

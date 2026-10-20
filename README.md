@@ -47,7 +47,7 @@ Then ask your agent: *"Deploy this app to Cloudish."*
 
 ```
 skills/cloudish/SKILL.md          the skill
-.claude-plugin/                   Claude Code plugin + marketplace manifests
+.claude-plugin/                   Claude Code plugin + marketplace manifests, icon
 plugin.json                       OpenAI / Agent Plugins manifest
 assets/cloudish.png               icon
 ```
