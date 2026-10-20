@@ -8,9 +8,9 @@ description: Cloudish deploys apps as long-lived containers with a public URL, s
 Last updated 2026-10-20 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
-builds images server-side, so skip installing Docker and running `docker
-build` locally — that's CPU/memory-heavy and often more than the machine
-you're running on can spare, and there's no registry to manage either way.
+builds images server-side, so no local Docker or `docker build` is needed —
+a local build is CPU/memory-heavy and often more than the machine you're on
+can spare, and there's no registry to manage either way.
 Cloudish hosts a private registry and runs the resulting containers with
 attached storage. There is no user-facing product UX here — everything is
 this API.
@@ -66,7 +66,7 @@ same request. Two ways to attach one, mutually exclusive:
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
-  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:latest", "port": 8080}'
+  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080}'
 # -> { "project": { "path": "your-alias/my-app", ... }, "app": { "status": "registered", ... },
 #      "subdomain": { "url": "https://<token>.cloudish.app/", ... } }
 ```
@@ -147,7 +147,7 @@ Non-secret config goes in `env` on the same call as above:
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
-  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:latest", "port": 8080,
+  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080,
        "env": {"LOG_LEVEL": "debug"}}'
 ```
 
@@ -169,7 +169,7 @@ Request a volume when creating or updating the app:
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
-  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:latest", "port": 8080,
+  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080,
        "volumeEnabled": true, "volumeSizeGb": 5, "volumeMountPath": "/data"}'
 ```
 
@@ -282,9 +282,10 @@ Cloudish has no managed Postgres/MySQL offering — attach a volume (section
 
 - **SQLite** — simplest option for most apps: point your app at a file
   under the mounted volume (e.g. `$DATA_DIR/app.db`). No extra process.
-- **Postgres** — install `postgresql` in your image, and on container
-  start (not at build time): run `initdb` into a subdirectory of the
-  mounted volume if it isn't initialized yet, start `pg_ctl`, then
+- **Postgres** — add the `postgresql` package to your image. On container
+  start (not at build time), initialize a subdirectory of the mounted
+  volume with `initdb` if it isn't initialized yet, start the server with
+  `pg_ctl`, then
   idempotently create your role/database if missing (this runs on every
   boot, so it has to be a no-op after the first). Run schema migrations at
   startup too, since the database only exists once the container is

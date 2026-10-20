@@ -20,7 +20,7 @@ so `10` allows 9 replicas. The default is `1` (no replicas); the highest is
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
-  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:latest", "port": 8080, "replicas": 10}'
+  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080, "replicas": 10}'
 ```
 
 Replicas have no storage: anything one writes is gone when it stops. An app
