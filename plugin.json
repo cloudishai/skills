@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "cloudish",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Deploy and operate containerized apps with Hal9 Cloudish from ChatGPT and Codex.",
   "author": {
     "name": "Hal9"
@@ -34,7 +34,7 @@
         "category": "Developer Tools"
       },
       "publication": {
-        "release_notes": "Adds the core deploy calls to the skill itself, plus guidance on ports, memorable URLs, and keys for sub-agents.",
+        "release_notes": "Bundles the full Cloudish docs (credits, sizes, replicas, container isolation) with the skill instead of fetching them at deploy time.",
         "countries": []
       },
       "review": {

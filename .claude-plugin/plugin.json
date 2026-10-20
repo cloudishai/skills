@@ -1,6 +1,7 @@
 {
   "name": "cloudish",
-  "version": "0.1.4",
+  "displayName": "Cloudish",
+  "version": "0.1.5",
   "description": "Deploy apps to Cloudish at a live URL: server-side builds, persistent storage for databases and files, user sign-in via OIDC, and API keys agents mint themselves and humans claim later.",
   "author": {
     "name": "Hal9 Inc",
@@ -9,5 +10,10 @@
   "homepage": "https://cloudish.ai",
   "repository": "https://github.com/cloudishai/skills",
   "license": "MIT",
+  "icon": "./assets/cloudish.png",
+  "documentationUrl": "https://www.cloudish.ai/docs",
+  "supportUrl": "https://www.cloudish.ai/help",
+  "privacyPolicyUrl": "https://www.cloudish.ai/privacy",
+  "termsOfServiceUrl": "https://www.cloudish.ai/terms",
   "keywords": ["cloudish", "deployment", "docker", "containers", "hosting", "agents"]
 }
