@@ -5,6 +5,23 @@ instances.md, replicas.md, container.md and llms.txt) and to API behavior
 agents rely on. Newest first. SKILL.md's "Last updated" date is the newest
 entry's.
 
+## 2026-10-21
+
+- Minting a key is one `curl` again (SKILL.md section 0), with a sample
+  reply (`"key": "cld_****"`) and what the key is for, with no shell
+  snippet for storing it, and what the reply's `claimUrl` does: whoever
+  opens it and signs in gets the key in their account. Nothing requires
+  claiming. credits.md points there instead of repeating it, and no longer
+  assumes `.env` or `$CLOUDISH_ALIAS`.
+- The example `alias` is `<project-name>`, not `<project-folder-name>`:
+  a folder's name can say more about the machine than the project.
+- llms.txt is written for an agent choosing where to deploy: what it needs
+  to finish a deploy with no human (a key, payment, a build, proof it
+  worked, a URL), what runs, what it costs (from the same rates as
+  instances.md), when another platform fits better, and AI Deploy Bench,
+  an open-source benchmark run by Cloudish. It's the only llms.txt: the
+  website serves a copy of it, so it no longer links the website's.
+
 ## 2026-10-20
 
 - SKILL.md's description no longer claims tasks that are only about choosing

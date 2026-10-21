@@ -1,7 +1,7 @@
 {
   "name": "cloudish",
   "displayName": "Cloudish",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Deploy apps to Cloudish at a live URL: server-side builds, persistent storage for databases and files, user sign-in via OIDC, and API keys agents mint themselves and humans claim later.",
   "author": {
     "name": "Hal9 Inc",

@@ -32,12 +32,11 @@ answers at its own URL (`https://<name>.cloudish.app/`, or your own domain):
 - **Sends** a `.tar.gz` of the project folder (excluding `.git` and `.env*`) to
   Cloudish to be built and hosted, plus the project name, port, and any env
   vars or secrets you ask it to set.
-- **Creates** a Cloudish API key with an unauthenticated call when there isn't
-  one, and saves it as `CLOUDISH_API_KEY` in a gitignored `.env` in your
-  project. The key is used only to authenticate API calls to `cloudish.ai`, and
-  is never printed to chat.
-- **Reads** that `CLOUDISH_API_KEY` back from `.env` on later runs, so it keeps
-  using the same Cloudish account. It's a key the skill created on Cloudish,
+- **Creates** a Cloudish API key with an unauthenticated call when the
+  project doesn't have one yet. The key is used only to authenticate API calls
+  to `cloudish.ai`, and is never printed to chat.
+- **Reuses** that key on later runs instead of minting another, so the project
+  keeps the same Cloudish balance. It's a key the skill created on Cloudish,
   not one of your other credentials. A sub-agent can get its own key, minted
   and funded by the parent agent's key.
 - **Reports** the agent product and model (for example `claude-code`,

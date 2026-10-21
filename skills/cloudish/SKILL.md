@@ -5,7 +5,7 @@ description: Cloudish deploys apps as long-lived containers with a public URL, s
 
 # Deploy container apps on Cloudish
 
-Last updated 2026-10-20 ([changelog](changelog.md)).
+Last updated 2026-10-21 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
 builds images server-side, so no local Docker or `docker build` is needed —
@@ -30,27 +30,28 @@ $CLOUDISH_API_KEY`). New keys include 0.1 credits to start, subject to availabil
 or container that needs its own credential gets a key under yours, funded by
 transfer (credits.md).
 
-This mints a key only when `./.env` has none, and writes it straight into
-`.env` (gitignored first) so the key never shows up in your output:
-
 ```bash
-for f in .env .env.new-key.json; do grep -qxF "$f" .gitignore 2>/dev/null || echo "$f" >> .gitignore; done
-grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null || {
-  curl -sf -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-    -d '{"alias": "<project-folder-name>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}' > .env.new-key.json &&
-  jq -r 'select(.key) | "CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
-  rm -f .env.new-key.json
-}
-. ./.env   # in every shell that calls the API: it sets $CLOUDISH_API_KEY
+curl -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
+  -d '{"alias": "<project-name>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}'
 ```
 
-The response is `{ "apiKey": { "alias": "funny-monkey", "balance": 0.1, ... }, "key": "cld_...", "claimUrl": "https://..." }`.
-`alias` is optional: the project folder's name makes a good one, or leave
+The key comes back in the response:
+
+```json
+{ "apiKey": { "alias": "my-app", "balance": 0.1, ... }, "key": "cld_****", "claimUrl": "https://..." }
+```
+
+`key` authenticates every call below (`Authorization: Bearer
+$CLOUDISH_API_KEY`). If this project already has one, reuse it instead of
+minting another. Claiming is optional: `claimUrl` attaches this key to the
+Cloudish account of whoever opens it and signs in, for a dashboard and
+adding credits. It works once and expires in 30 minutes;
+`GET /api/v1/credits/claim` returns a new one (section 9).
+
+`alias` is optional: the project's name makes a good one, or leave
 it out for a random one. You get that name if it's free, or a close variant
-(e.g. `<name>-otter`) if not; `$CLOUDISH_ALIAS` is whatever came back,
-the `{alias}` in every project path below. (Uses `jq` to read the
-response; parse it however you like if it isn't installed, as long as the
-key goes to `.env` and not your output.)
+(e.g. `my-app-otter`) if not; use the `apiKey.alias` that comes back, the
+`{alias}` in every project path below.
 
 `agent`, `model` and `ref` are all optional; leave out any you don't know.
 `agent` is the product you run in (`claude-code`, `claude`, `chatgpt`,
@@ -59,9 +60,6 @@ key goes to `.env` and not your output.)
 link this document came from (`claude-plugin`, `chatgpt-plugin`,
 `codex-plugin`, `mcp.so`, `producthunt`, ...) — leave it out rather than
 guess. They only show Cloudish which agents and channels use it. Keep `ref` as shown: it only tells Cloudish which link sent you here.
-
-Keep `.env` — losing the key means starting over with a new key and
-balance.
 
 ## 1. Create (or update) a project and deploy it — one call
 
@@ -387,8 +385,7 @@ key. Deploy, `/me` and credits responses carry
 `GET /api/v1/credits/claim` (same auth) mints a fresh, single-use link a
 human can open to attach this key to their own account and add credits to
 it. Run it yourself and give your human the resulting URL — not the
-`curl` command for them to run, which they'd need the key from `.env`
-for:
+`curl` command for them to run:
 
 ```bash
 curl https://cloudish.ai/api/v1/credits/claim -H "Authorization: Bearer $CLOUDISH_API_KEY"

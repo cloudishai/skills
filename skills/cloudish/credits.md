@@ -7,24 +7,8 @@ SKILL.md.
 
 ## Which key to use
 
-Keep your API key in the project folder's gitignored `.env` — reuse it if
-it's already there instead of minting a new one. This mints one only when
-`.env` has none, and writes it straight into `.env`, so the key never
-shows up in your output. The alias is optional: the project folder's name
-makes a good one, or leave `alias` out for a random one:
-
-```bash
-for f in .env .env.new-key.json; do grep -qxF "$f" .gitignore 2>/dev/null || echo "$f" >> .gitignore; done
-grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null || {
-  curl -sf -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-    -d '{"alias": "<project-folder-name>"}' > .env.new-key.json &&
-  jq -r 'select(.key) | "CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
-  rm -f .env.new-key.json
-}
-```
-
-(Uses `jq` to read the response; parse it however you like if it isn't
-installed.)
+Keep each project's key with that project, and reuse it instead of minting
+a new one (minting is SKILL.md section 0).
 
 A key per project folder keeps each project on its own balance, so one
 running out never stops another, and its alias tells a human which project a
@@ -60,8 +44,8 @@ the key that ran out:
 ```
 
 The alias names the key that pays for the request — the project owner's,
-whoever calls it — so match it against `CLOUDISH_ALIAS` in `.env`
-to know which folder's key needs credits. Then, from that folder, mint a claim link
+whoever calls it — so match it against each project's saved alias to know
+which project's key needs credits. Then, from that folder, mint a claim link
 for that key yourself and hand your human the URL itself — never the
 command to mint one — naming the alias so they know which project it's for:
 
