@@ -8,22 +8,19 @@ SKILL.md.
 ## Which key to use
 
 Keep your API key in the project folder's gitignored `.env` — reuse it if
-it's already there instead of minting a new one:
+it's already there instead of minting a new one. This mints one only when
+`.env` has none, and writes it straight into `.env`, so the key never
+shows up in your output. The alias is optional: the project folder's name
+makes a good one, or leave `alias` out for a random one:
 
 ```bash
-grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null && echo "reuse the key in .env"
-```
-
-Only if it isn't there, mint one with the project folder's name as its
-alias, and write it straight into `.env` so the key never shows up in your
-output:
-
-```bash
-curl -s -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-  -d '{"alias": "<project-folder-name>"}' > .env.new-key.json
-jq -r '"CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
-rm .env.new-key.json
-grep -qxF .env .gitignore 2>/dev/null || echo .env >> .gitignore
+for f in .env .env.new-key.json; do grep -qxF "$f" .gitignore 2>/dev/null || echo "$f" >> .gitignore; done
+grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null || {
+  curl -sf -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
+    -d '{"alias": "<project-folder-name>"}' > .env.new-key.json &&
+  jq -r 'select(.key) | "CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
+  rm -f .env.new-key.json
+}
 ```
 
 (Uses `jq` to read the response; parse it however you like if it isn't

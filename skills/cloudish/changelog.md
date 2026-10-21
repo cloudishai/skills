@@ -10,9 +10,21 @@ entry's.
 - SKILL.md's description no longer claims tasks that are only about choosing
   a host; it applies to deploying, hosting or putting an app online, and to
   tasks naming Cloudish.
-- SKILL.md states two rules up front: never print keys or secrets into chat,
-  source or logs, and never report a deploy as succeeded without verifying
-  it.
+- SKILL.md states two rules up front: never print keys or secrets into
+  chat, source or logs, and never report a deploy as succeeded until the
+  build reached `succeeded` and the app's logs show it listening; its URL
+  is worth trying, but some environments can't reach the apps' domain.
+- SKILL.md section 0 mints a key with the same snippet as credits.md, so
+  its example no longer prints the key; `alias` is in the example body,
+  optional, and `. ./.env` loads the key in each shell.
+- credits.md saves a new key to `.env` without capturing `curl`'s output in
+  `$( )`: the response goes to a temporary `.env.new-key.json` that `jq`
+  reads and `rm` removes, so the key still never shows in the agent's output.
+  It still mints only when `.env` has no key, writes nothing when the
+  request fails, gitignores `.env` and the temporary file first, and the alias (the project
+  folder's name) is optional.
+- The example image is pinned (`ghcr.io/acme/my-app:1.0.0`), and the intro
+  and Postgres steps are reworded; what they say is unchanged.
 - `ref` is the plugin, directory or link SKILL.md came from (`claude-plugin`,
   `chatgpt-plugin`, `producthunt`, ...), left out rather than guessed; it
   no longer asks for `user`.

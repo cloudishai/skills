@@ -71,6 +71,12 @@ directory.
 
 Then ask your agent: *"Deploy this app to Cloudish."*
 
+**In the Claude apps and Cowork**, the agent runs in a sandbox: when asked,
+allow outbound network access to `cloudish.ai` (the API) and `cloudish.app`
+(where your deployed apps are served). Keys don't carry over between chats
+there, so claim yours (the agent can give you a link) to keep your projects
+and credits with your account.
+
 ## Layout
 
 ```

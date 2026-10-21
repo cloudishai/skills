@@ -15,9 +15,12 @@ Cloudish hosts a private registry and runs the resulting containers with
 attached storage. There is no user-facing product UX here — everything is
 this API.
 
-Two rules throughout: never print API keys or secrets into chat, source code
-or logs, and never report a deploy as succeeded without verifying it — the
-build reached `succeeded` and the app's URL answers.
+Never print API keys or secrets into chat, source code or logs. Never
+report a deploy as succeeded until you've verified it: the build reached
+`succeeded`, and the app's logs (section 7) show it started and is
+listening. Try its URL too if you can reach it, but some environments reach
+cloudish.ai but not the apps' own domain, so a URL you can't
+open isn't a failure by itself.
 
 ## 0. Get an API key
 
@@ -27,18 +30,27 @@ $CLOUDISH_API_KEY`). New keys include 0.1 credits to start, subject to availabil
 or container that needs its own credential gets a key under yours, funded by
 transfer (credits.md).
 
+This mints a key only when `./.env` has none, and writes it straight into
+`.env` (gitignored first) so the key never shows up in your output:
+
 ```bash
-curl -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-  -d '{"agent": "<agent>", "model": "<model>", "ref": "skills-repo"}'
-# -> { "apiKey": { "alias": "funny-monkey", "balance": 0.1, ... }, "key": "cld_...", "claimUrl": "https://..." }
+for f in .env .env.new-key.json; do grep -qxF "$f" .gitignore 2>/dev/null || echo "$f" >> .gitignore; done
+grep -q '^CLOUDISH_API_KEY=' .env 2>/dev/null || {
+  curl -sf -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
+    -d '{"alias": "<project-folder-name>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}' > .env.new-key.json &&
+  jq -r 'select(.key) | "CLOUDISH_API_KEY=\(.key)\nCLOUDISH_ALIAS=\(.apiKey.alias)"' .env.new-key.json >> .env
+  rm -f .env.new-key.json
+}
+. ./.env   # in every shell that calls the API: it sets $CLOUDISH_API_KEY
 ```
 
-Save `key` as `$CLOUDISH_API_KEY` — every call below authenticates with it.
-If `./.env` already has a `CLOUDISH_API_KEY`, reuse that instead of minting
-a new one. Optionally pass `{"alias": "<project-folder-name>"}` — you get
-that name if it's free, or a close variant (e.g. `<name>-otter`) if not;
-use whatever `apiKey.alias` comes back, which becomes the `{alias}` in
-every project path below.
+The response is `{ "apiKey": { "alias": "funny-monkey", "balance": 0.1, ... }, "key": "cld_...", "claimUrl": "https://..." }`.
+`alias` is optional: the project folder's name makes a good one, or leave
+it out for a random one. You get that name if it's free, or a close variant
+(e.g. `<name>-otter`) if not; `$CLOUDISH_ALIAS` is whatever came back,
+the `{alias}` in every project path below. (Uses `jq` to read the
+response; parse it however you like if it isn't installed, as long as the
+key goes to `.env` and not your output.)
 
 `agent`, `model` and `ref` are all optional; leave out any you don't know.
 `agent` is the product you run in (`claude-code`, `claude`, `chatgpt`,
@@ -48,11 +60,8 @@ link this document came from (`claude-plugin`, `chatgpt-plugin`,
 `codex-plugin`, `mcp.so`, `producthunt`, ...) — leave it out rather than
 guess. They only show Cloudish which agents and channels use it. Keep `ref` as shown: it only tells Cloudish which link sent you here.
 
-Persist it somewhere durable before doing anything else — losing it means
-starting over with a new key and balance. A local `.env` file works well
-(`echo "CLOUDISH_API_KEY=$CLOUDISH_API_KEY" >> .env`); just make sure that
-file is gitignored (`echo .env >> .gitignore`) so it never ends up
-committed by accident.
+Keep `.env` — losing the key means starting over with a new key and
+balance.
 
 ## 1. Create (or update) a project and deploy it — one call
 
