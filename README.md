@@ -1,4 +1,4 @@
-![Cloudish](assets/cloudish-160.png)
+<p align="center"><img src="assets/cloudish-160.png" alt="Cloudish"></p>
 
 <h1 align="center">Cloudish Skills</h1>
 
