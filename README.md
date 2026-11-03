@@ -30,8 +30,9 @@ the Cloudish API at `https://cloudish.ai`, and to check that your deployed app
 answers at its own URL (`https://<name>.cloudish.app/`, or your own domain):
 
 - **Sends** a `.tar.gz` of the project folder (excluding `.git` and `.env*`) to
-  Cloudish to be built and hosted, plus the project name, port, and any env
-  vars or secrets you ask it to set.
+  Cloudish to be built and hosted, plus the project name, port, how it should
+  run (always on, or sleeping when idle), and any env vars or secrets you ask
+  it to set.
 - **Creates** a Cloudish API key with an unauthenticated call when the
   project doesn't have one yet. The key is used only to authenticate API calls
   to `cloudish.ai`, and is never printed to chat.

@@ -5,10 +5,11 @@ dollar. All prices below already include the platform margin.
 
 ## How billing works
 
-- **Billed per second, only while the container is running.** An app with
-  no traffic scales to zero after its idle timeout (15 minutes by
-  default, see SKILL.md section 4) and costs nothing until the next request
-  starts it again.
+- **Billed per second, only while the container is running.** An app
+  sleeps after `sleepAfterMinutes` without requests (15 by default, see
+  SKILL.md section 1) and costs nothing until the next request wakes it,
+  unless it was deployed with `"alwaysOn": true`: that one runs, and is
+  billed, around the clock.
 - **Price per second = CPU + memory + a flat fee**, charged at the size you
   *reserved*, not what the app happens to use:
 
@@ -64,8 +65,8 @@ always there, and it's never restarted to make room for another app.
 
 ## What a year costs by usage
 
-Includes the idle timeout after each period of use (15 minutes by default),
-since the container keeps running until it expires.
+Includes the 15 minutes (the default `sleepAfterMinutes`) the container keeps
+running after each period of use, before it sleeps.
 
 | Usage | Billed hours/year | `shared` | `small` | `medium` | `large` |
 |---|---|---|---|---|---|
@@ -74,8 +75,10 @@ since the container keeps running until it expires.
 | 1 h/day | 456 | $4.90 | $13.53 | $24.33 | $45.93 |
 
 Anything that keeps sending requests (uptime monitors, crawlers, a page
-that polls) keeps the container running and billed. The idle timeout can
-be changed per key, or set to never (`0`) for an always-on container, see
-SKILL.md section 4.
+that polls) keeps the container running and billed. Each app chooses:
+`"alwaysOn": true` for the "Always on" row, or a `sleepAfterMinutes` of its
+own. A bot that wakes every hour (`"wakeEveryMinutes": 60`) and sleeps after
+5 minutes (`"sleepAfterMinutes": 5`) runs about 730 hours a year. See
+SKILL.md section 1.
 
 Current rates are also available as JSON at `GET https://cloudish.ai/api/v1/pricing`.

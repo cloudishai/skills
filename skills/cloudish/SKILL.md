@@ -1,19 +1,19 @@
 ---
 name: cloudish
-description: Cloudish deploys apps as long-lived containers with a public URL, such as websites, APIs, bots, workers and MCP servers. It builds server-side from a Dockerfile or source folder (no local Docker daemon), or runs an existing image, with an optional persistent volume. An agent creates its own API key with one call and no signup; credits are prepaid and metered per second, so spend never exceeds the key's balance. Use when a task involves deploying, hosting or putting an app online, and whenever a task names Cloudish.
+description: Cloudish deploys apps as long-lived containers with a public URL, such as websites, APIs, bots, workers and MCP servers. It builds server-side from a Dockerfile or source folder (no local Docker daemon), or runs an existing image, with an optional persistent volume. An AI agent creates its own API key with one call and no signup; credits are prepaid and metered per second, so spend never exceeds the key's balance. Use when a task involves deploying, hosting or putting an app online, and whenever a task names Cloudish.
 ---
 
 # Deploy container apps on Cloudish
 
-Last updated 2026-10-21 ([changelog](changelog.md)).
+Last updated 2026-11-01 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
 builds images server-side, so no local Docker or `docker build` is needed —
 a local build is CPU/memory-heavy and often more than the machine you're on
 can spare, and there's no registry to manage either way.
 Cloudish hosts a private registry and runs the resulting containers with
-attached storage. There is no user-facing product UX here — everything is
-this API.
+attached storage. Everything from getting a key to deploying takes only the
+calls below: nothing to install, no account to create.
 
 Never print API keys or secrets into chat, source code or logs. Never
 report a deploy as succeeded until you've verified it: the build reached
@@ -32,7 +32,7 @@ transfer (credits.md).
 
 ```bash
 curl -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-  -d '{"alias": "<project-name>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}'
+  -d '{"alias": "<alias>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}'
 ```
 
 The key comes back in the response:
@@ -42,16 +42,18 @@ The key comes back in the response:
 ```
 
 `key` authenticates every call below (`Authorization: Bearer
-$CLOUDISH_API_KEY`). If this project already has one, reuse it instead of
+$CLOUDISH_API_KEY`). If you already have a key for this work (from an
+earlier run, or one your environment provides), reuse it instead of
 minting another. Claiming is optional: `claimUrl` attaches this key to the
 Cloudish account of whoever opens it and signs in, for a dashboard and
 adding credits. It works once and expires in 30 minutes;
 `GET /api/v1/credits/claim` returns a new one (section 9).
 
-`alias` is optional: the project's name makes a good one, or leave
-it out for a random one. You get that name if it's free, or a close variant
-(e.g. `my-app-otter`) if not; use the `apiKey.alias` that comes back, the
-`{alias}` in every project path below.
+`alias` is optional: a short name for what you're deploying (e.g.
+`todo-app`) makes a good one, or leave it out for a random one. You get
+that name if it's free, or a close variant (e.g. `my-app-otter`) if not,
+and it can be renamed later (`PATCH /api/v1/me`). Use the
+`apiKey.alias` that comes back, the `{alias}` in every project path below.
 
 `agent`, `model` and `ref` are all optional; leave out any you don't know.
 `agent` is the product you run in (`claude-code`, `claude`, `chatgpt`,
@@ -73,7 +75,7 @@ same request. Two ways to attach one, mutually exclusive:
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
-  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080}'
+  -d '{"name": "my-app", "image": "ghcr.io/acme/my-app:1.0.0", "port": 8080, "alwaysOn": true}'
 # -> { "project": { "path": "your-alias/my-app", ... }, "app": { "status": "registered", ... },
 #      "subdomain": { "url": "https://<token>.cloudish.app/", ... } }
 ```
@@ -92,9 +94,26 @@ context:
 tar --exclude='.env*' --exclude='.git' -czf context.tar.gz .
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" \
-  -F "name=my-app" -F "port=8080" -F "context=@context.tar.gz"
+  -F "name=my-app" -F "port=8080" -F "sleepAfterMinutes=30" -F "context=@context.tar.gz"
 # -> { "project": { "path": "your-alias/my-app", ... }, "build": { "id": 123, "status": "pending" } }
 ```
+
+**Choose how it runs** on every deploy, since the right answer depends on
+the app:
+
+- `"alwaysOn": true` runs it around the clock, billed the whole time, and
+  starts it as soon as it's deployed: for a site or API that must answer at
+  once, or a bot or worker that nothing sends requests to.
+- `"sleepAfterMinutes": 30` (1 to 1440; 15 if you choose neither) puts it to
+  sleep after that long without requests, billed only while awake; the next
+  request wakes it in seconds. Add `"wakeEveryMinutes": 60` (5 to 10080) to
+  also wake it on a schedule: a bot that polls then runs every hour until it
+  sleeps again.
+
+Left out on a redeploy, each keeps the app's own. Change them without a
+redeploy: `PATCH https://cloudish.ai/api/v1/projects/{owner}/{name}` with the same
+fields. An always-on app's `runway.alwaysOnHoursLeft` says how long its
+balance keeps it running.
 
 `port` defaults to `8080` and must be the port your server listens on,
 whatever the Dockerfile's `EXPOSE` says: an nginx image listens on `80`,
@@ -147,6 +166,10 @@ as `subdomain.url` above. It's `https://<name>.cloudish.app/` and keeps working
 whichever datacenter serves the app: save and share that one. See section 4 to swap the random URL for a
 memorable one, rotate it, or turn it off.
 
+To take a deployment down, `DELETE /api/v1/projects/{owner}/{name}` stops
+the container and its billing, and deploying the same name again later
+starts fresh. A volume is deleted with the project, so its data is gone.
+
 ## 2. Environment variables and secrets
 
 Non-secret config goes in `env` on the same call as above:
@@ -168,6 +191,14 @@ curl -X PUT https://cloudish.ai/api/v1/projects/YOUR_ALIAS/my-app/secrets \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" -H "content-type: application/json" \
   -d '{"name": "OPENAI_API_KEY", "value": "sk-..."}'
 ```
+
+For *human* login, OIDC authentication is available (section 5).
+
+Several at once take the same shape as `env`:
+`-d '{"OPENAI_API_KEY": "sk-...", "STRIPE_KEY": "sk_live_..."}'`. Saving or
+deleting secrets restarts a running app with the new values; an idle one
+gets them when it next starts. `GET …/secrets` lists names (never values);
+`DELETE …/secrets/NAME` removes one.
 
 ## 3. Persistent storage
 
@@ -215,12 +246,7 @@ $CLOUDISH_API_KEY` as everything else in this doc; an `open` (the default)
 or `public` project also answers with no credential at all, billed to its
 owner. This platform doesn't mediate identity for the container itself — no
 trusted headers, nothing — that's the image's own job to configure if it
-wants one. The container starts on first request if it isn't already, and
-scales back down after inactivity
-(30/60/300/900/3600/28800/86400 seconds, or `0` for never, keeping it
-always on and billed around the clock; default is the deployment's own,
-override per-key with `PATCH /api/v1/me {"settings": {"idleTimeoutSeconds":
-<one of those>}}`).
+wants one. A sleeping app (section 1) starts on the next request.
 
 ### Your own domains
 
@@ -302,9 +328,10 @@ Cloudish has no managed Postgres/MySQL offering — attach a volume (section
   and save it onto the same volume, so it survives restarts instead of
   rotating every redeploy.
 
-### Sign-in for your users (OIDC)
+### Authentication: user sign-in and admin panels (OIDC)
 
-If your app needs to know who's visiting it, point it at Cloudish's own
+If your app needs to know who's visiting it — an end-user login, or a single
+admin panel — point it at Cloudish's own
 OpenID Connect provider instead of running your own identity system — a
 standard discovery document, Authorization Code + PKCE, no client secret
 to manage:
@@ -323,6 +350,11 @@ verifier>&code_challenge_method=S256&state=...`, then exchange the
 (with the PKCE verifier) for an `id_token` carrying `sub`/`email`/`name`.
 `redirect_uri` must be under your project's subdomain or one of its active
 custom domains (section 4).
+
+Authenticating the visitor is not the same as authorizing them: any Cloudish
+user can complete this flow, so an admin panel still needs its own allowlist
+of `email`/`sub` claims and must reject everyone else. The platform adds no
+trusted headers to the request (section 4) — verify the `id_token` in your app.
 
 Build `redirect_uri` from the host the request came in on, not from a
 fixed URL. An app can answer on more than one hostname (apps created before
@@ -375,8 +407,8 @@ running on the free grant for a while, some never need more. Bring it up
 when it's relevant to what you and your human are doing, not on a fixed
 schedule.
 
-Credits are spent only while an app is in use: by default an app sleeps
-after 15 minutes without requests (see section 4) and wakes on the next one.
+Credits are spent only while an app runs: one that sleeps (section 1)
+costs nothing until it wakes, and an always-on one spends around the clock.
 More can be added at any time: through the claim link below (for a key
 already in an account, from that account), or by a transfer from another
 key. Deploy, `/me` and credits responses carry

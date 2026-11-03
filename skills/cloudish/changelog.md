@@ -5,6 +5,63 @@ instances.md, replicas.md, container.md and llms.txt) and to API behavior
 agents rely on. Newest first. SKILL.md's "Last updated" date is the newest
 entry's.
 
+## 2026-11-01
+
+- SKILL.md section 0's example `alias` is `<alias>`, not `<project-name>`:
+  it only labels the key (the `{alias}` half of every project path), so
+  minting one never waits on a project name. The paragraph says you get the
+  name or a close variant, and can rename it later with `PATCH /api/v1/me`.
+- Section 0 no longer leans on a project that doesn't exist yet at mint
+  time: the alias is "a short name for what you're deploying", and an
+  existing key is one "for this work" rather than "for this project".
+- SKILL.md section 1 ends with how to take a deployment down:
+  `DELETE /api/v1/projects/{owner}/{name}` stops the container and its
+  billing, and the same name deployed again starts fresh; a volume is
+  deleted with the project, so its data is gone.
+
+## 2026-10-26
+
+- On a datacenter with a GPU, an app can have it: \`"gpu": true\` on deploy,
+  at a flat hourly price while it runs, one GPU app at a time (a \`409\`
+  \`gpu_busy\` while another has it). That datacenter's SKILL.md and
+  instances.md describe it; elsewhere nothing changes.
+- Each app says how it runs, on deploy (SKILL.md section 1): \`"alwaysOn":
+  true\` keeps it running, billed around the clock, and starts it as soon
+  as it's deployed; otherwise it sleeps after \`sleepAfterMinutes\` without
+  requests (15 unless set) and wakes on the next one, or on a
+  \`wakeEveryMinutes\` schedule, for a bot or worker nothing sends requests
+  to. \`PATCH /api/v1/projects/{owner}/{name}\` changes them without a
+  redeploy. Both deploy examples show a choice, and the agent makes it.
+- The key-wide \`PATCH /api/v1/me {"settings": {"idleTimeoutSeconds": ...}}\`
+  is no longer documented. It still applies to apps that choose none of
+  these.
+- An app's \`status\` says why it's down: \`sleeping\`, \`out_of_credits\`
+  (it starts again once its key has credits) or \`stopped\`, and its
+  \`sleep\` how it runs. An always-on app's \`runway\` adds
+  \`alwaysOnHoursLeft\`.
+- Replicas follow their app's \`sleepAfterMinutes\` (replicas.md), and
+  instances.md and llms.txt describe the choice.
+
+## 2026-10-25
+
+- `PUT /api/v1/projects/{owner}/{name}/secrets` also takes several secrets
+  at once, as a map of names to values like a project's `env`, saved all
+  or none and answered as `{"secrets": [...]}`. One `{"name", "value"}` is
+  unchanged. A body of neither shape gets a 400 naming both.
+- Saving or deleting secrets restarts a running app with the new values,
+  and leaves an idle one idle. A secret change used to stop the app
+  instead, or reach it only on its next request.
+- SKILL.md's secrets section says all of this, and how to list
+  (`GET …/secrets`, names only) and delete them.
+- SKILL.md's description says "An AI agent creates its own API key", not
+  "An agent": "agent" alone can mean a person.
+
+## 2026-10-22
+
+- llms.txt no longer links the website's docs for people, and
+  `GET /api/v1/config` no longer returns a `docs` URL: everything an agent
+  needs is in SKILL.md and its companion documents.
+
 ## 2026-10-21
 
 - Minting a key is one `curl` again (SKILL.md section 0), with a sample
@@ -15,6 +72,10 @@ entry's.
   assumes `.env` or `$CLOUDISH_ALIAS`.
 - The example `alias` is `<project-name>`, not `<project-folder-name>`:
   a folder's name can say more about the machine than the project.
+- SKILL.md's intro no longer says Cloudish has no user-facing product (the
+  website has a dashboard): everything from getting a key to deploying
+  takes only the calls it shows, with nothing to install and no account to
+  create.
 - llms.txt is written for an agent choosing where to deploy: what it needs
   to finish a deploy with no human (a key, payment, a build, proof it
   worked, a URL), what runs, what it costs (from the same rates as
