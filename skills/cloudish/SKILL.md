@@ -5,7 +5,7 @@ description: Cloudish deploys apps as long-lived containers with a public URL, s
 
 # Deploy container apps on Cloudish
 
-Last updated 2026-11-01 ([changelog](changelog.md)).
+Last updated 2026-11-06 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
 builds images server-side, so no local Docker or `docker build` is needed —
@@ -95,7 +95,7 @@ tar --exclude='.env*' --exclude='.git' -czf context.tar.gz .
 curl -X POST https://cloudish.ai/api/v1/projects \
   -H "Authorization: Bearer $CLOUDISH_API_KEY" \
   -F "name=my-app" -F "port=8080" -F "sleepAfterMinutes=30" -F "context=@context.tar.gz"
-# -> { "project": { "path": "your-alias/my-app", ... }, "build": { "id": 123, "status": "pending" } }
+# -> { "project": { "path": "your-alias/my-app", ... }, "build": { "id": 123, "status": "running" } }
 ```
 
 **Choose how it runs** on every deploy, since the right answer depends on
@@ -136,9 +136,11 @@ curl https://cloudish.ai/api/v1/images/builds/123 -H "Authorization: Bearer $CLO
 # -> { "build": { "status": "running", "logs": "<build output so far>" }, "image": null }
 ```
 
-`build.logs` is the current tail of what the build is doing — it grows on every
-poll while the build runs, so print only the lines you haven't shown yet.
-Stop once `status` is `"succeeded"` or `"failed"`; on `"failed"`, show both
+Poll only while `status` is `"running"`: that's the only state a build in
+progress is in, so anything else — `"succeeded"`, `"failed"`, or a response
+with no status at all — is the end. `build.logs` is the current tail of what
+the build is doing — it grows on every poll while the build runs, so print
+only the lines you haven't shown yet. On `"failed"`, show both
 `build.error` and the tail of `build.logs`. Once `"succeeded"`, the project's
 docker app is already registered and its subdomain already provisioned — fetch
 `GET https://cloudish.ai/api/v1/projects/{owner}/{name}` for the resulting
@@ -308,10 +310,11 @@ containers are isolated: [container.md](container.md). Bring any Dockerfile:
 Anything else that speaks HTTP on one port works the same way — these are
 just the common cases.
 
-### A real database, without a managed database service
+### A database that persists
 
-Cloudish has no managed Postgres/MySQL offering — attach a volume (section
-3) and run the database *inside your own container* instead:
+Cloudish has no managed Postgres/MySQL offering. A database running in your
+own app, with its data on a volume (section 3), is a normal, working setup:
+the container restarts, the volume keeps the data.
 
 - **SQLite** — simplest option for most apps: point your app at a file
   under the mounted volume (e.g. `$DATA_DIR/app.db`). No extra process.
@@ -327,6 +330,21 @@ Cloudish has no managed Postgres/MySQL offering — attach a volume (section
   start. Generate any long-lived secret (session signing key, etc.) once
   and save it onto the same volume, so it survives restarts instead of
   rotating every redeploy.
+
+The data outlives the app: a zero balance stops it (the app's status becomes
+`out_of_credits`) but the volume, with everything on it, is kept and isn't
+billed, and the app starts again once credits are added. Deleting the
+project is what destroys the data (section 1).
+
+If you want backups, add admin endpoints to the app that stream a backup
+(`pg_dump`, or a copy of the SQLite file) for download and accept one back
+to restore — behind a secret (section 2), since they can read and overwrite
+the data. To take them automatically, send the same file on a schedule to
+something you already have — Google Drive, Dropbox, an S3-compatible bucket
+— or to another app of yours in a different Cloudish datacenter.
+
+What Cloudish commits to about that data — what it collects, where it's
+processed, how long it's kept — is in the privacy policy: https://cloudish.ai/privacy.md.
 
 ### Authentication: user sign-in and admin panels (OIDC)
 

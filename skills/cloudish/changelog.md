@@ -5,6 +5,47 @@ instances.md, replicas.md, container.md and llms.txt) and to API behavior
 agents rely on. Newest first. SKILL.md's "Last updated" date is the newest
 entry's.
 
+## 2026-11-06
+
+- SKILL.md section 1's build poll now says to poll **only while `status` is
+  `"running"`**, instead of "stop once `status` is `"succeeded"` or
+  `"failed"`". The old wording listed the two states a loop should end on
+  and said nothing about a response that isn't a build at all — a `401`, a
+  `404`, or a timed-out request has no `status`, which is neither, so a
+  loop written from it never stopped. Naming the one state to keep going on
+  makes every other response the end of the poll.
+- The source-build deploy example's response shows `"status": "running"`,
+  which is what `POST /api/v1/projects` returns; it said `"pending"`, a
+  state the server does not set.
+
+- SKILL.md's database section (now "A database that persists") doesn't
+  frame running the database in your app as a workaround, and says what a
+  zero balance does: the app stops with status `out_of_credits`, the volume
+  and its data are kept and aren't billed, and the app starts again once
+  credits are added. Deleting the project is what destroys the data.
+- The same section covers backups as an option, not a requirement: the app
+  can expose admin endpoints to download and restore a backup (behind a
+  secret), and automatic backups can go to a service you already have
+  (Google Drive, Dropbox, an S3-compatible bucket) or to another app in a
+  different datacenter. credits.md's "When a key runs out" and
+  container.md's Storage bullet say the same about volumes surviving a
+  zero balance.
+- SKILL.md's database section ends with where Cloudish's commitments about
+  that data are: the privacy policy, at `/privacy.md`.
+- llms.txt's Optional list links the legal documents themselves, as text
+  (`/terms.md`, `/privacy.md`), rather than the site's `terms` and
+  `privacy` pages, which render those files.
+- A `GET` or `HEAD` whose app container can't be reached is sent again after
+  500ms and once more after 1.5s before answering `502` (`the application is
+  not reachable`). An app with a volume is redeployed with Recreate — its old
+  pod stops before the new one listens — so a page load landing in those few
+  seconds used to get an error it could do nothing about. Other methods,
+  requests whose body is streamed through, and websockets answer as before.
+
+Fixes cloudishai/skills#9. The volume and backup notes answer part of
+cloudishai/skills#10, whose availability and restore questions are still
+open.
+
 ## 2026-11-01
 
 - SKILL.md section 0's example `alias` is `<alias>`, not `<project-name>`:

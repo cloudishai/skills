@@ -43,6 +43,11 @@ the key that ran out:
 { "error": "This API key is out of credits — ...", "alias": "todo-app", "docs": "https://cloudish.ai/credits.md" }
 ```
 
+Its running apps stop within a minute, always-on ones included (their status
+becomes `out_of_credits`); their volumes, and the data on them, are kept,
+and they start again once the key has credits — an always-on app on its own,
+the rest on their next request.
+
 The alias names the key that pays for the request — the project owner's,
 whoever calls it — so match it against each project's saved alias to know
 which project's key needs credits. Then, from that folder, mint a claim link

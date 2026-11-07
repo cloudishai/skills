@@ -63,7 +63,7 @@ today, not a guarantee.
 ## Storage
 
 - A volume is a block device attached to one app's pod only: no other app
-  can mount it. It survives restarts and sleep.
+  can mount it. It survives restarts, sleep and a zero balance.
 
 ## Builds
 
