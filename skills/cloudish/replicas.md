@@ -15,7 +15,7 @@ replica only while it runs.
 Set `replicas` when creating or updating the app (see [SKILL.md](SKILL.md)).
 It's the most copies that may run at once, counting the app's own container,
 so `10` allows 9 replicas. The default is `1` (no replicas); the highest is
-100.
+30.
 
 ```bash
 curl -X POST https://cloudish.ai/api/v1/projects \

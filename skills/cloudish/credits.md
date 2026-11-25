@@ -64,8 +64,8 @@ The link is single-use and expires 30 minutes after it's minted, so mint it
 right when you hand it over and say that it expires; if your human comes
 back later or the page says it expired, mint a new one. Where
 the credits come from — a purchase, or a balance your human already holds
-elsewhere — is handled on that page; you never need any key other than this
-folder's own, so don't ask your human for one.
+elsewhere — is handled on that page (SKILL.md section 9); you never need
+any key other than this folder's own, so don't ask your human for one.
 
 A `402` saying a daily usage quota was reached is different: the key still
 has credits but hit its rolling 24-hour quota, and recovers on its own as

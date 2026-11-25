@@ -1,9 +1,98 @@
 # Cloudish changelog
 
 Every change to the documents agents read (SKILL.md, credits.md,
-instances.md, replicas.md, container.md and llms.txt) and to API behavior
-agents rely on. Newest first. SKILL.md's "Last updated" date is the newest
-entry's.
+instances.md, replicas.md, container.md, minting.md and llms.txt) and to API
+behavior agents rely on. Newest first. SKILL.md's "Last updated" date is the
+newest entry's.
+
+## 2026-11-24
+
+- `POST /api/v1/keys` takes an optional `source`: a short free-text answer to
+  what brought the agent to Cloudish (`user-request`, `plugin-request`,
+  `skill-request`, `agent-choice`, `automation`, `evaluating`, or its own
+  words). It replaces the optional `ref` link slug in SKILL.md's example.
+  `?ref=` and the `ref` body field are no longer advertised or written;
+  old copies that still send `ref` keep working (it is ignored).
+
+## 2026-11-21
+
+- Published documents name the platform's site, not the answering
+  datacenter's. llms.txt's Website links and SKILL.md's claim and sign-in
+  (OIDC) examples use the canonical `www.cloudish.ai`, derived from
+  `cloudish.alias`, so a copy fetched from a datacenter host — or proxied
+  from one by www.cloudish.ai — points at the same place after the alias
+  moves. The claim URL an API response actually returns is unchanged and
+  stays authoritative.
+- SKILL.md's custom-domain step points the domain's `CNAME`/`A` record at
+  the floating alias (`cloudish.ai`), not the datacenter that answered, so
+  custom domains follow the alias on failover. Section 8 still names the
+  datacenter that answered, since that is what it is about.
+
+## 2026-11-18
+
+- The GPU is described in instances.md only: what kind it is (an NVIDIA
+  RTX 4060 on this deployment's on-prem datacenters, `gpu.model` in each
+  config), the flat hourly price, the `409` `gpu_busy` behavior while
+  another app holds it, and the CUDA image hint. SKILL.md links
+  instances.md for sizes and pricing and no longer says anything about the
+  GPU itself.
+
+## 2026-11-15
+
+- Mint tokens (`mnt_...`): a credential an orchestrator can hand an agent
+  that may never deploy. It can only mint a child of the key that issued it
+  (`POST /api/v1/keys`), bounded by `maxChildren`, `expiresInMinutes`,
+  `childCredits` (funds each child from the issuer in the same request),
+  per-child credit limits, a per-child daily quota and revocation
+  (`POST`/`GET /api/v1/mint-tokens`, `DELETE /api/v1/mint-tokens/{id}`).
+  An agent that never deploys never holds a spendable key. This is an
+  advanced option; SKILL.md mentions it only as a footnote, and the new
+  minting.md has the details.
+- `GET /api/v1/me` and `GET /api/v1/credits` report the lower of a key's
+  own daily quota and any ceiling set from above by the mint token that
+  created it; the key cannot raise it.
+
+## 2026-11-11
+
+- SKILL.md section 9's claim example names this deployment's own site —
+  `www.do.cloudish.ai` in do, `www.anton.cloudish.ai` in anton — instead of
+  always `www.cloudish.ai`. A claim link is redeemed by the site backed by
+  the datacenter whose database holds the challenge, so a key that lives
+  in another datacenter is forwarded there first and gets that one's link
+  (section 8 says which datacenter answered). The static copy bundled into
+  a plugin shows the response's shape only, since it can't know which
+  deployment will serve it.
+- SKILL.md section 1's `runtimeClass` field now says how this datacenter
+  runs apps by default — in a sandbox (`gvisor` in Seattle, or `kata` when
+  the app asks), or that apps share the host's kernel. container.md's
+  "Where a container runs" says the same thing in the same words, instead
+  of always claiming there is no per-app sandbox. Both come from
+  `configs/config-seattle.yaml`'s `runtime.docker.runtimeClassName`, so each
+  datacenter's copy states its own.
+
+## 2026-11-10
+
+- Deploying an app accepts an optional `runtimeClass` — `gvisor`, or `kata`
+  for a VM — as a hint for the sandbox technology its pods should run in.
+  The only accepted values are those two; there is no `runc` value. A
+  datacenter that supports that sandbox uses it; one that configures no
+  sandbox ignores the hint and runs the app in its own default, so leaving
+  it out is always safe. On a redeploy, leaving it out keeps the app's
+  current hint. SKILL.md section 1 lists it with the other docker-app
+  fields.
+
+## 2026-11-07
+
+- SKILL.md says that claiming can also bring the human's account a small
+  credit bonus, which they can move into the key — a little to start with,
+  not a replacement for buying credits. It's in the `claimUrl` note
+  (section 0) and the claiming section (section 9). How much is set on the
+  claiming side, so the document gives no number.
+- SKILL.md's claiming section (section 9) says that the same link works
+  for a human who already has a Cloudish account: the key is claimed into
+  it, and the page can move credits the account already holds into the key,
+  or buy more. credits.md's "When a key runs out" points there, so on a
+  `402` an agent asks for a claim instead of assuming a purchase.
 
 ## 2026-11-06
 

@@ -27,6 +27,13 @@ dollar. All prices below already include the platform margin.
 - **Custom domains** cost $0.01 per active domain per day, billed
   hourly (see SKILL.md section 4).
 - **Persistent volumes** are not billed.
+- **The GPU** (`gpu`, below) is an NVIDIA RTX 4060: a flat
+  $2.73 an hour while the app runs, its CPU and memory
+  included. Deploy with `"gpu": true` (and no `cpuCores`/`memoryGb`) to get it
+  whole. It's exclusive: while one app holds it, a second GPU app gets `409`
+  (`gpu_busy`) until the first sleeps, so let yours sleep when idle too — and
+  a GPU app has no replicas. The machine has the NVIDIA driver; build
+  `FROM` an image with CUDA, such as `nvidia/cuda` or `pytorch/pytorch`.
 
 ## Sizes
 
@@ -42,6 +49,7 @@ Month = 730 hours, year = 8,760 hours, running the whole time.
 | `small` | `"cpuCores": 0.5, "memoryGb": 1` | 0.5 | 1 GB | $0.00000824 | $0.0297 | $21.66 | $259.87 |
 | `medium` | `"cpuCores": 1, "memoryGb": 2` | 1 | 2 GB | $0.00001481 | $0.0533 | $38.93 | $467.17 |
 | `large` | `"cpuCores": 2, "memoryGb": 4` | 2 | 4 GB | $0.00002796 | $0.1007 | $73.48 | $881.78 |
+| `gpu` | `"gpu": true` | 15, and the GPU | 31 GB | $0.00075833 | $2.7300 | $1992.90 | $23914.80 |
 
 ### `shared`: memory and CPU on demand
 
@@ -68,11 +76,11 @@ always there, and it's never restarted to make room for another app.
 Includes the 15 minutes (the default `sleepAfterMinutes`) the container keeps
 running after each period of use, before it sleeps.
 
-| Usage | Billed hours/year | `shared` | `small` | `medium` | `large` |
-|---|---|---|---|---|---|
-| Always on | 8,760 | $94.03 | $259.87 | $467.17 | $881.78 |
-| 8 h/day, weekdays only | 2,145 | $23.02 | $63.63 | $114.39 | $215.92 |
-| 1 h/day | 456 | $4.90 | $13.53 | $24.33 | $45.93 |
+| Usage | Billed hours/year | `shared` | `small` | `medium` | `large` | `gpu` |
+|---|---|---|---|---|---|---|
+| Always on | 8,760 | $94.03 | $259.87 | $467.17 | $881.78 | $23914.80 |
+| 8 h/day, weekdays only | 2,145 | $23.02 | $63.63 | $114.39 | $215.92 | $5855.85 |
+| 1 h/day | 456 | $4.90 | $13.53 | $24.33 | $45.93 | $1245.56 |
 
 Anything that keeps sending requests (uptime monitors, crawlers, a page
 that polls) keeps the container running and billed. Each app chooses:

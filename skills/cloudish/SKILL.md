@@ -5,7 +5,7 @@ description: Cloudish deploys apps as long-lived containers with a public URL, s
 
 # Deploy container apps on Cloudish
 
-Last updated 2026-11-06 ([changelog](changelog.md)).
+Last updated 2026-11-24 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
 builds images server-side, so no local Docker or `docker build` is needed —
@@ -32,7 +32,7 @@ transfer (credits.md).
 
 ```bash
 curl -X POST https://cloudish.ai/api/v1/keys -H "content-type: application/json" \
-  -d '{"alias": "<alias>", "agent": "<agent>", "model": "<model>", "ref": "skills-repo"}'
+  -d '{"alias": "<alias>", "agent": "<agent>", "model": "<model>", "source": "<source>"}'
 ```
 
 The key comes back in the response:
@@ -46,7 +46,8 @@ $CLOUDISH_API_KEY`). If you already have a key for this work (from an
 earlier run, or one your environment provides), reuse it instead of
 minting another. Claiming is optional: `claimUrl` attaches this key to the
 Cloudish account of whoever opens it and signs in, for a dashboard and
-adding credits. It works once and expires in 30 minutes;
+adding credits; the claim may also add a small credit bonus to that account,
+which they can move into this key. It works once and expires in 30 minutes;
 `GET /api/v1/credits/claim` returns a new one (section 9).
 
 `alias` is optional: a short name for what you're deploying (e.g.
@@ -55,13 +56,16 @@ that name if it's free, or a close variant (e.g. `my-app-otter`) if not,
 and it can be renamed later (`PATCH /api/v1/me`). Use the
 `apiKey.alias` that comes back, the `{alias}` in every project path below.
 
-`agent`, `model` and `ref` are all optional; leave out any you don't know.
+`agent`, `model` and `source` are all optional; leave out any you don't know.
 `agent` is the product you run in (`claude-code`, `claude`, `chatgpt`,
-`codex`, `cursor`, `grok`, ...), `model` the model you are
-(`claude-opus-5-5`, `gpt-5.5`, ...), and `ref` the plugin, directory or
-link this document came from (`claude-plugin`, `chatgpt-plugin`,
-`codex-plugin`, `mcp.so`, `producthunt`, ...) — leave it out rather than
-guess. They only show Cloudish which agents and channels use it. Keep `ref` as shown: it only tells Cloudish which link sent you here.
+`codex`, `cursor`, `grok`, ...), `model` you use (`claude-opus-5-5`,
+`gpt-5.5`, `deepseek-v4-pro`, ...), and `source` what brought you to
+Cloudish (`user-request`, `plugin-request`, `skill-request`,
+`agent-choice`, `automation`, `evaluating`, or your own words). Leave it
+out rather than guess. They only tell Cloudish which agents use it and
+where they came from.
+
+*Advanced minting: see [minting.md](minting.md).*
 
 ## 1. Create (or update) a project and deploy it — one call
 
@@ -151,7 +155,10 @@ non-secret vars), `volumeEnabled`/`volumeSizeGb`/`volumeMountPath`
 (persistent storage), `cpuCores`/`memoryGb` (container size, distinct
 from the build's own), `maxBodyMb` (the largest request body the app
 accepts, 64 MB unless set, at most 1024; a bigger one gets `413`
-before it reaches the app, so raise it for large uploads). To run many isolated copies of the same app — one
+before it reaches the app, so raise it for large uploads), `runtimeClass`
+(an optional hint for the sandbox technology: `gvisor`, or `kata` for a VM —
+a slower start, a stronger boundary. On this deployment apps run in a sandbox — `gvisor` by default, or `kata` when the app asks — so they don't share the host's kernel;
+leaving it out is always safe, and on a redeploy it keeps the app's own hint). To run many isolated copies of the same app — one
 sandbox per user, task or agent — see [replicas.md](replicas.md).
 
 Left out, a new app gets the default size, `shared`: billed for 0.1 CPU
@@ -266,9 +273,9 @@ curl -X POST https://cloudish.ai/api/v1/projects/YOUR_ALIAS/my-app/domains \
 1. Add the returned TXT record at your DNS provider. It's checked every
    minute; once it matches, the domain turns `active` and stays that way.
    It's only checked once, so the record can be removed afterwards.
-2. Point the domain at do.cloudish.ai: a `CNAME` for a subdomain like
+2. Point the domain at cloudish.ai: a `CNAME` for a subdomain like
    `www`; an apex (`foobar.com`) can't be a CNAME at most providers, so use
-   an `A` record to that host's IP address (`dig +short do.cloudish.ai`), or your provider's
+   an `A` record to that host's IP address (`dig +short cloudish.ai`), or your provider's
    CNAME flattening/ALIAS if it has one. The certificate issues once both
    steps are done.
 3. To have one domain send visitors to the other instead of serving the
@@ -419,7 +426,13 @@ transfers, or funding more than one project.
 
 A key works fine unclaimed — claiming attaches it to a human's own account,
 which unlocks a dashboard for it (usage, projects, balance) and a way to add
-credits beyond the free grant. Whether and when that's worth doing is
+credits beyond the free grant. The claim may also add a small credit bonus
+to that account, which the human can move into this key. The same link
+works for a human who already has a Cloudish account: the key is claimed
+into that account, and the page can move credits the account already holds
+into this key, or buy more — so claiming is usually how a key that ran out
+gets funded again without a purchase.
+Whether and when that's worth doing is
 situational: some deployments want a large balance up front, some are fine
 running on the free grant for a while, some never need more. Bring it up
 when it's relevant to what you and your human are doing, not on a fixed
@@ -439,8 +452,8 @@ it. Run it yourself and give your human the resulting URL — not the
 
 ```bash
 curl https://cloudish.ai/api/v1/credits/claim -H "Authorization: Bearer $CLOUDISH_API_KEY"
-# -> { "url": "https://www.cloudish.ai/claim?challenge=..." }
-# -> tell your human: "To add credits to <alias>, open: https://www.cloudish.ai/claim?challenge=..."
+# -> { "url": "https://..." }
+# -> tell your human: "To add credits to <alias>, open: <that url>"
 ```
 
 The link works once and expires 30 minutes after it's minted, so mint it at
