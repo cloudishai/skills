@@ -1,11 +1,11 @@
 ---
 name: cloudish
-description: Cloudish deploys apps as long-lived containers with a public URL, such as websites, APIs, bots, workers and MCP servers. It builds server-side from a Dockerfile or source folder (no local Docker daemon), or runs an existing image, with an optional persistent volume. An AI agent creates its own API key with one call and no signup; credits are prepaid and metered per second, so spend never exceeds the key's balance. Use when a task involves deploying, hosting or putting an app online, and whenever a task names Cloudish.
+description: Cloudish deploys apps as long-lived containers reachable at an unlisted, unguessable share link — a random 128-bit hostname, not a listed public address — such as websites, APIs, bots, workers and MCP servers. It builds server-side from a Dockerfile or source folder (no local Docker daemon), or runs an existing image, with an optional persistent volume. An AI agent gets its own API key with one call and no signup to deploy with; credits are prepaid and metered per second, so spend never exceeds the key's balance, and a human can sign in and claim the key — and the apps it deployed — at any time. Use when a task involves deploying, hosting or putting an app online, and whenever a task names Cloudish.
 ---
 
 # Deploy container apps on Cloudish
 
-Last updated 2026-11-24 ([changelog](changelog.md)).
+Last updated 2026-11-25 ([changelog](changelog.md)).
 
 Cloudish is an agent-first, API-key/credit, container-deployment platform: it
 builds images server-side, so no local Docker or `docker build` is needed —
@@ -42,12 +42,13 @@ The key comes back in the response:
 ```
 
 `key` authenticates every call below (`Authorization: Bearer
-$CLOUDISH_API_KEY`). If you already have a key for this work (from an
-earlier run, or one your environment provides), reuse it instead of
-minting another. Claiming is optional: `claimUrl` attaches this key to the
-Cloudish account of whoever opens it and signs in, for a dashboard and
-adding credits; the claim may also add a small credit bonus to that account,
-which they can move into this key. It works once and expires in 30 minutes;
+$CLOUDISH_API_KEY`).
+
+`claimUrl` is optional: it opens a Cloudish account (or signs in) and
+claims this key, so a human can claim it before you deploy — mint the key,
+hand over the link, deploy once it's claimed — or later, moving the key and
+its projects into their account. The claim may also add a small credit
+bonus they can move into the key. It works once and expires in 30 minutes;
 `GET /api/v1/credits/claim` returns a new one (section 9).
 
 `alias` is optional: a short name for what you're deploying (e.g.
@@ -170,10 +171,13 @@ Left out on an existing app, its size stays as it is. The response's `app.resour
 `creditsPerHour`. Sizes and pricing: [instances.md](instances.md).
 
 Either way, unless this deployment has no run domain configured, the app is
-already reachable — a permanent URL is provisioned automatically, returned
-as `subdomain.url` above. It's `https://<name>.cloudish.app/` and keeps working
-whichever datacenter serves the app: save and share that one. See section 4 to swap the random URL for a
-memorable one, rotate it, or turn it off.
+already served at an unlisted share link provisioned automatically and
+returned as `subdomain.url` above: `https://<32-character-random-token>.cloudish.app/`,
+128 random bits that can't be guessed or enumerated. It keeps working
+whichever datacenter serves the app.
+Share that link only with the people meant to see the app; see
+section 4 to opt into a memorable name, rotate a leaked link, or turn it
+off.
 
 To take a deployment down, `DELETE /api/v1/projects/{owner}/{name}` stops
 the container and its billing, and deploying the same name again later
@@ -226,14 +230,15 @@ can't run replicas.
 
 ## 4. Customize the subdomain, or use your own domains
 
-Section 1 already provisioned a permanent URL automatically once the image
-registered — `subdomain.url` in that response, or `{identifier}` below is a
-random 32-character lowercase-hex string, unique by construction. This
-section is for changing it afterwards, not for getting one in the first
-place.
+Section 1 already provisioned an unlisted share link automatically once the
+image registered — `subdomain.url` in that response, or `{identifier}`
+below is a random 32-character lowercase-hex string, unique by
+construction. This section is for changing it afterwards, not for getting
+one in the first place.
 
-If the app is public-facing and a memorable name matters, set your own
-instead (non-private projects only):
+If the user wants a public app with a memorable address, set a label
+instead (non-private projects only). Unlike the random share link, a chosen
+label is guessable:
 
 ```bash
 curl -X PUT https://cloudish.ai/api/v1/projects/YOUR_ALIAS/my-app/subdomain \
@@ -245,7 +250,10 @@ curl -X PUT https://cloudish.ai/api/v1/projects/YOUR_ALIAS/my-app/subdomain \
 `label` must be 1-63 characters: lowercase letters, digits and hyphens, not
 starting or ending with a hyphen. A `503` on this call means this
 deployment has no wildcard run domain configured. Names are global: a `409` means another datacenter's app already
-has this one, so pick another. Leaked the URL? `POST
+has this one, so pick another.
+A label changes only the hostname; it doesn't list the app anywhere. Keep
+the random share link and the default access unless the user asks for a
+findable app. Leaked the URL? `POST
 .../subdomain/rotate` issues a fresh one. Want the app unreachable from the
 outside entirely (API-only)? `DELETE .../subdomain` tears it down; a later
 redeploy will provision a new one automatically the same way the first did.
@@ -424,8 +432,9 @@ gets far enough to write a log line at all.
 Read [credits.md](credits.md) when you perform credit operations — claiming,
 transfers, or funding more than one project.
 
-A key works fine unclaimed — claiming attaches it to a human's own account,
-which unlocks a dashboard for it (usage, projects, balance) and a way to add
+A key works fine unclaimed — claiming attaches it, and every project it
+deployed, to a human's own account (signing in or creating one), which
+unlocks a dashboard for it (usage, projects, balance) and a way to add
 credits beyond the free grant. The claim may also add a small credit bonus
 to that account, which the human can move into this key. The same link
 works for a human who already has a Cloudish account: the key is claimed

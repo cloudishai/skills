@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "cloudish",
-  "version": "0.1.9",
-  "description": "Deploy and operate containerized apps with Hal9 Cloudish from ChatGPT and Codex.",
+  "version": "0.1.10",
+  "description": "Deploy and operate containerized apps with Hal9 Cloudish from ChatGPT and Codex, each at an unlisted share link.",
   "author": {
     "name": "Hal9"
   },
@@ -22,7 +22,7 @@
       "interface": {
         "displayName": "Cloudish",
         "shortDescription": "Deploy apps with Cloudish",
-        "longDescription": "Cloudish by Hal9 helps coding agents prepare and deploy containerized websites, APIs, dashboards, and services. The plugin guides project inspection, Dockerfile preparation, runtime ports, persistent storage, encrypted secrets, deployment status, and troubleshooting using Cloudish's current API documentation. Cloudish builds containers server-side and provides a hosted URL. The plugin contains deployment instructions; it does not include a connected MCP server or interactive app.",
+        "longDescription": "Cloudish by Hal9 helps coding agents prepare and deploy containerized websites, APIs, dashboards, and services. The plugin guides project inspection, Dockerfile preparation, runtime ports, persistent storage, encrypted secrets, deployment status, and troubleshooting using Cloudish's current API documentation. Cloudish builds containers server-side and returns an unlisted share link with a random, unguessable hostname, not a listed public address. The plugin contains deployment instructions; it does not include a connected MCP server or interactive app.",
         "defaultPrompt": "Deploy this app to Cloudish.",
         "logo": "./assets/cloudish.png",
         "composerIcon": "./assets/cloudish.png",
@@ -34,7 +34,7 @@
         "category": "Developer Tools"
       },
       "publication": {
-        "release_notes": "Key creation takes an optional `source` saying what brought the agent to Cloudish, in place of the old `ref` slug; the documents name the platform's canonical site and point custom domains at it, so a copy keeps working when the platform moves; deploys take an optional `runtimeClass` sandbox hint (`gvisor`, or `kata` for a VM) and each datacenter states how it runs apps by default; a new minting.md covers starting agents that mint a key only on first deploy; and claiming a key can add a small credit bonus, including for a human who already has an account.",
+        "release_notes": "SKILL.md now describes each deployment as an unlisted share link with a random 128-bit hostname, not a listed public address, with a memorable custom subdomain as an opt-in, guessable choice; claiming a key also puts every project it deployed under the claimer's account. The documents otherwise match cloudish.ai: source attribution, runtimeClass sandbox hints, mint tokens, and claim bonuses.",
         "countries": []
       },
       "review": {

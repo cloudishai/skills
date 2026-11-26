@@ -1,8 +1,8 @@
 {
   "name": "cloudish",
   "displayName": "Cloudish",
-  "version": "0.1.9",
-  "description": "Deploy apps to Cloudish at a live URL: server-side builds, persistent storage for databases and files, user sign-in via OIDC, and API keys agents mint themselves and humans claim later.",
+  "version": "0.1.10",
+  "description": "Deploy apps to Cloudish as unlisted share links: server-side builds, persistent storage for databases and files, user sign-in via OIDC, and API keys agents mint themselves and humans claim later.",
   "author": {
     "name": "Hal9 Inc",
     "url": "https://cloudish.ai"

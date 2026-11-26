@@ -15,7 +15,7 @@ can never exceed. No browser, no card, no local Docker.
 
 | Skill | What it does |
 |---|---|
-| [`cloudish`](skills/cloudish/SKILL.md) | Prepares a project, deploys it to Cloudish, and reports the live URL. |
+| [`cloudish`](skills/cloudish/SKILL.md) | Prepares a project, deploys it to Cloudish, and reports the unlisted share link. |
 
 The skill is a copy of **https://cloudish.ai/skill.md** and the docs it links
 to (credits, instances, replicas, container isolation, changelog), bundled so
@@ -27,7 +27,8 @@ versions ship as new releases of this plugin.
 The plugin contains instructions only: no MCP server, hooks, scripts, or
 binaries. When you ask it to deploy, the agent uses `curl` and `tar` to call
 the Cloudish API at `https://cloudish.ai`, and to check that your deployed app
-answers at its own URL (`https://<name>.cloudish.app/`, or your own domain):
+answers at its unlisted share link (`https://<token>.cloudish.app/`, or your
+own domain):
 
 - **Sends** a `.tar.gz` of the project folder (excluding `.git` and `.env*`) to
   Cloudish to be built and hosted, plus the project name, port, how it should

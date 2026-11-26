@@ -5,6 +5,19 @@ instances.md, replicas.md, container.md, minting.md and llms.txt) and to API
 behavior agents rely on. Newest first. SKILL.md's "Last updated" date is the
 newest entry's.
 
+## 2026-11-25
+
+- SKILL.md calls each deployment what it is: an unlisted share link with a
+  random 128-bit hostname that Cloudish doesn't list or link in any gallery
+  or directory by default, rather than a "public URL". A memorable custom
+  subdomain is described as opt-in and guessable, and claiming a key says
+  it can happen before the deploy — so the app lands in the human's account
+  from the start — or later, moving the key and its projects under their
+  account. No API behavior changes.
+- SKILL.md section 0 no longer suggests reusing an earlier or
+  environment-provided key: mint a key for the deployment, and let each one
+  be claimed separately.
+
 ## 2026-11-24
 
 - `POST /api/v1/keys` takes an optional `source`: a short free-text answer to
